@@ -10,7 +10,7 @@ class HtmxTest(TestCase):
 
     def test_body_has_htmx_csrftoken_header(self):
         res = self.client.get("/")
-        html = BeautifulSoup(res.content)
+        html = BeautifulSoup(res.content, features="html.parser")
         body = html.find("body")
         try:
             hx_headers = body.attrs["hx-headers"]
