@@ -37,7 +37,7 @@ async def wait_for_url(
 def make_chromium_options() -> ChromiumOptions:
     """Factory for default Chromium options."""
     options = ChromiumOptions()
-    # options.add_argument("--headless")
+    options.add_argument("--headless=new")
     return options
 
 
