@@ -13,3 +13,29 @@ on:
 jobs:
   checks:
     uses: ./.github/workflows/_pre-build-checks.yaml
+
+  e2e:
+    needs: checks
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: suydtdjereo
+          POSTGRES_USER: suydtdjereo
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.6.17"
+      - uses: extractions/setup-just@v3
+      - run: uv sync --group=test
+      - run: just manage migrate
+      - run: just manage seed_database
+      - run: USE_ENV_TEST=1 just runserver "" & # launch Django in background
+      - run: sleep 5
+      - run: uv run python tests_e2e/e2e.py
