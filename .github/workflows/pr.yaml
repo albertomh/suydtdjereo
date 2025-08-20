@@ -17,6 +17,8 @@ jobs:
   e2e:
     needs: checks
     runs-on: ubuntu-24.04
+    env:
+      USE_ENV_TEST: "1"
     services:
       postgres:
         image: postgres:17
@@ -36,6 +38,6 @@ jobs:
       - run: uv sync --group=test
       - run: just manage migrate
       - run: just manage seed_database
-      - run: USE_ENV_TEST=1 just runserver "" & # launch Django in background
+      - run: just runserver "" & # launch Django in background
       - run: sleep 5
       - run: uv run python tests_e2e/e2e.py
