@@ -2,9 +2,13 @@ import asyncio
 import unittest
 from contextlib import asynccontextmanager
 
+from environs import Env
 from pydoll.browser import Chrome
 from pydoll.browser.options import ChromiumOptions
 from pydoll.browser.tab import Tab
+
+env = Env()
+env.read_env()
 
 
 async def wait_for_url(
@@ -37,7 +41,11 @@ async def wait_for_url(
 def make_chromium_options() -> ChromiumOptions:
     """Factory for default Chromium options."""
     options = ChromiumOptions()
-    options.add_argument("--headless=new")
+
+    if env.bool("CI", default=False) or env.bool("GITHUB_ACTIONS", default=False):
+        options.binary_location = "/usr/bin/chromium-browser"
+        options.add_argument("--headless=new")
+
     return options
 
 
