@@ -23,7 +23,7 @@ from suydtdjereo.logging import LoggingConfigFactory
 
 # 0. Setup -------------------------------------------------------------------------------
 
-IS_TESTING = "test" in sys.argv
+IS_TESTING = "test" in sys.argv or env.bool("USE_ENV_TEST", default=False)
 
 if IS_TESTING:
     env.read_env(".env.test", recurse=False)
