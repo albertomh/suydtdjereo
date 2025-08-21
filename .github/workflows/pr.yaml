@@ -14,7 +14,7 @@ jobs:
   checks:
     uses: ./.github/workflows/_pre-build-checks.yaml
 
-  e2e:
+  e2e_pydoll:
     needs: checks
     runs-on: ubuntu-24.04
     env:
@@ -44,4 +44,4 @@ jobs:
       - run: just manage seed_database
       - run: just runserver "" & # launch Django in background
       - run: sleep 5
-      - run: uv run python tests_e2e/e2e.py
+      - run: uv run python tests_e2e/pydoll.py
