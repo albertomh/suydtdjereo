@@ -37,6 +37,7 @@ class Command(BaseCommand):
 
         for data in users_data:
             create_user(data)
+            self.stdout.write(f"Created user '{data['email']}'")
 
         self.stdout.write(self.style.SUCCESS("Done."))
 
