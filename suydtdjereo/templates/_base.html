@@ -101,8 +101,8 @@
                     </li>
                 {% else %}
                     <li><a href="/">Home</a></li>
-                    <li><a href="{% url 'account_login' %}">Log in</a></li>
-                    <li><a href="{% url 'account_signup' %}">Sign up</a></li>
+                    <li><a href="{% url 'account_login' %}" id="navlink-log-in">Log in</a></li>
+                    <li><a href="{% url 'account_signup' %}" id="navlink-sign-up">Sign up</a></li>
                 {% endif %}
             </ul>
         </nav>
