@@ -59,20 +59,24 @@ jobs:
       - name: Apply migrations and seed database
         run: |
           docker run --rm \
-            --env-file _deploy/.env.deploy \
             --network host \
+            -e USE_ENV_TEST=1 \
+            -e SECRET_KEY=django-insecure_not-a-secret \
+            -e ALLOWED_HOSTS=127.0.0.1,::1 \
+            -e CSRF_TRUSTED_ORIGINS=http://127.0.0.1 \
+            -e DATABASE_URL="postgres://suydtdjereo:password@localhost:5432/suydtdjereo" \
             ${{ needs.containerise.outputs.image_address }} \
-            python manage.py migrate && \
-            python manage.py seed_database
+            /bin/bash -c "python manage.py migrate && python manage.py seed_database"
       - name: Run webapp container
         run: |
           docker run -d \
             --name webapp \
             --network host \
             -e USE_ENV_TEST=1 \
-            -e POSTGRES_DB=suydtdjereo \
-            -e POSTGRES_USER=suydtdjereo \
-            -e POSTGRES_PASSWORD=password \
+            -e SECRET_KEY=django-insecure_not-a-secret \
+            -e ALLOWED_HOSTS=127.0.0.1,::1 \
+            -e CSRF_TRUSTED_ORIGINS=http://127.0.0.1 \
+            -e DATABASE_URL="postgres://suydtdjereo:password@localhost:5432/suydtdjereo" \
             -p 8000:8000 \
             ${{ needs.containerise.outputs.image_address }}
       - run: uv sync --group=test
