@@ -70,6 +70,7 @@ jobs:
       - name: Apply migrations and seed database
         run: |
           docker run --rm \
+            --add-host=host.docker.internal:host-gateway \
             -e USE_ENV_TEST \
             -e SECRET_KEY \
             -e ALLOWED_HOSTS \
@@ -80,6 +81,7 @@ jobs:
       - name: Run webapp in the background
         run: |
           docker run --detach \
+            --add-host=host.docker.internal:host-gateway \
             -e USE_ENV_TEST \
             -e SECRET_KEY \
             -e ALLOWED_HOSTS \
