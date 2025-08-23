@@ -13,3 +13,66 @@ on:
 jobs:
   checks:
     uses: ./.github/workflows/_pre-build-checks.yaml
+
+  containerise:
+    # containerisation of tagged releases is handled separately by the `on-tag` workflow
+    if: github.head_ref != 'release-please--branches--main'
+    needs:
+      - checks
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - run: |
+          echo "REPO_NAME=${GITHUB_REPOSITORY@L}" >> $GITHUB_ENV
+          echo "SHA_SHORT=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+      - uses: ./.github/actions/containerise
+        with:
+          dockerfile: _deploy/deploy.Dockerfile
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+          tags:
+            ghcr.io/${{ env.REPO_NAME }}/${{ github.ref_name }}:latest,
+            ghcr.io/${{ env.REPO_NAME }}/${{ github.ref_name }}:${{ env.SHA_SHORT }},
+
+  e2e:
+    needs: containerise
+    runs-on: ubuntu-24.04
+    env:
+      USE_ENV_TEST: "1"
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: suydtdjereo
+          POSTGRES_USER: suydtdjereo
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.6.17"
+      #- uses: extractions/setup-just@v3  # TODO: remove
+      - name: Set IMAGE var
+        run: echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY,,}/${GITHUB_REF_NAME}:${SHA_SHORT}" >> $GITHUB_ENV
+        env:
+          SHA_SHORT: ${{ needs.containerise.outputs.SHA_SHORT }}
+      - name: Run webapp container
+        run: |
+          docker run -d \
+            --name webapp \
+            --network host \
+            -e USE_ENV_TEST=1 \
+            -e POSTGRES_DB=suydtdjereo \
+            -e POSTGRES_USER=suydtdjereo \
+            -e POSTGRES_PASSWORD=password \
+            -p 8000:8000 \
+            $IMAGE
+      - run: docker exec webapp just manage migrate
+      - run: docker exec webapp just manage seed_database
+      - run: uv sync --group=test
+      - run: uv run playwright install --with-deps chromium
+      - run: uv run pytest tests_e2e/
