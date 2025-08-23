@@ -41,6 +41,7 @@ jobs:
     runs-on: ubuntu-24.04
     env:
       USE_ENV_TEST: "1"
+      IMAGE_ADDRESS: ${{ needs.containerise.outputs.image_address }}
     services:
       postgres:
         image: postgres:17
@@ -57,8 +58,6 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with:
           version: "0.6.17"
-      - name: Set image address from containerise
-        run: echo "IMAGE_ADDRESS=${{ needs.containerise.outputs.image_address }}" >> $GITHUB_ENV
       - name: Run webapp container
         run: |
           docker run -d \
