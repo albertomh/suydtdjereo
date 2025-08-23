@@ -69,8 +69,10 @@ jobs:
             -e POSTGRES_PASSWORD=password \
             -p 8000:8000 \
             ${{ needs.containerise.outputs.image_address }}
-      - run: docker exec webapp just manage migrate
-      - run: docker exec webapp just manage seed_database
+      - name: Apply migrations
+        run: docker exec webapp python manage.py migrate
+      - name: Seed database
+        run: docker exec webapp python manage.py seed_database
       - run: uv sync --group=test
       - run: uv run playwright install --with-deps chromium
       - run: uv run pytest tests_e2e/
