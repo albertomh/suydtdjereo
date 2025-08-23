@@ -7,4 +7,6 @@
 .release-please-manifest.*
 .ruff_cache
 htmlcov
+tests/
+tests_e2e/
 *tar.gz
